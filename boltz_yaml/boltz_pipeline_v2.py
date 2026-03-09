@@ -6,6 +6,7 @@ from pathlib import Path
 from multiprocessing import Pool
 from dataclasses import dataclass
 from typing import List, Generator, Tuple
+from typing import Optional
 
 # --- Constants & Logging ---
 # Sharding prefix length: 2 characters (e.g., output/O0/...)
@@ -67,7 +68,7 @@ class ProteinRepository:
         logger.info(f"Loaded {len(valid_proteins)} proteins with valid MSAs.")
         return valid_proteins
 
-    def _create_protein(self, p_id: str, seq: str) -> Protein:
+    def _create_protein(self, p_id: str, seq: str) -> Optional[Protein]:
         msa_path = (self.msa_dir / f"{p_id}.a3m").resolve()
         if not msa_path.is_file():
             # In a production pipeline, we log this but don't stop the whole process
