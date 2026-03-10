@@ -17,7 +17,7 @@ Designed to handle massive datasets (e.g., millions of combinations), it utilize
 
 ## 🚀 Installation
 
-Clone the repository and install the dependencies. [cite_start]The pipeline relies on core libraries such as `pandas` for robust ligand data parsing and `tqdm` for tracking massive job pools. 
+Clone the repository and install the dependencies. The pipeline relies on core libraries such as `pandas` for robust ligand data parsing and `tqdm` for tracking massive job pools. 
 
 ```bash
 git clone <your-repo-url>
