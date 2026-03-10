@@ -162,7 +162,7 @@ def main():
     parser.add_argument("--msa_dir", default="a3m_all")
     parser.add_argument("--ligand_dir", default="ligand_folder")
     parser.add_argument("--out_dir", default="output")
-    parser.add_argument("--workers", type=int, default=os.cpu_count(), #check for cpu count and use that as default
+    parser.add_argument("--workers", type=int, default=max(1 , (os.cpu_count() or 1) - 2), #check for cpu count and use that as default
                         help="Number of parallel processes (default: all cores)")
     args = parser.parse_args()
 
