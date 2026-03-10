@@ -80,28 +80,26 @@ class ProteinRepository:
 
 class LigandRepository:
     """Handles parsing Ligand CSV/TSV data."""
-    def __init__(self, folder_path: Path):
-        self.folder_path = folder_path
+    def __init__(self, file_path: Path):
+        self.file_path = file_path
 
     def get_all(self) -> List[Ligand]:
         import pandas as pd
         all_ligands = []
         
-        # Search for any .tsv or .csv in the ligand folder
-        files = list(self.folder_path.glob("*.tsv")) + list(self.folder_path.glob("*.csv"))
+        if not self.file_path.exists():
+            logger.error(f"Ligand file not found: {self.file_path}")
+            return []
+
+        logger.info(f"Loading ligands from {self.file_path.name}")
+        sep = "\t" if self.file_path.suffix == ".tsv" else ","
+        df = pd.read_csv(self.file_path, sep=sep)
         
-        for file in files:
-            logger.info(f"Loading ligands from {file.name}")
-            sep = "\t" if file.suffix == ".tsv" else ","
-            df = pd.read_csv(file, sep=sep)
-            
-            # Standardize column names based on your requirement
-            # Assuming columns: 'ligand_id' and 'smiles'
-            for _, row in df.iterrows():
-                all_ligands.append(Ligand(
-                    str(row['chembl_id']).strip(), #here you can change the column name to match your csv/tsv
-                    str(row['smiles']).strip()
-                ))
+        for _, row in df.iterrows():
+            all_ligands.append(Ligand(
+                str(row['chembl_id']).strip(),
+                str(row['smiles']).strip()
+            ))
         
         logger.info(f"Loaded {len(all_ligands)} total ligands.")
         return all_ligands
@@ -120,8 +118,8 @@ def process_combination(task_args: Tuple[Protein, Ligand, Path]):
     job_name = f"{safe_p}__{safe_l}"
     
     # 2. Design Pattern: Sharding
-    # We use the first 2 chars of protein ID as folder name
-    shard_dir = output_root / safe_p[:SHARD_PREFIX_LEN]
+    # We use the first 2 chars of protein ID as folder name if we input [:SHARD_PREFIX_LEN],without it it create for each gpcrs it own folder
+    shard_dir = output_root / safe_p
     shard_dir.mkdir(exist_ok=True)
     
     out_path = shard_dir / f"{job_name}.yaml"
@@ -160,8 +158,8 @@ def main():
     parser = argparse.ArgumentParser(description="Scalable Boltz-2 YAML Generator")
     parser.add_argument("--fasta", default="gpcrs/gpcrs.fasta")
     parser.add_argument("--msa_dir", default="a3m_all")
-    parser.add_argument("--ligand_dir", default="ligand_folder")
-    parser.add_argument("--out_dir", default="output")
+    parser.add_argument("--ligand_path", default="ligand_folder/Cleaned_phase_2.csv")
+    parser.add_argument("--out_dir", default="output_phase_2")
     parser.add_argument("--workers", type=int, default=max(1 , (os.cpu_count() or 1) - 2), #check for cpu count and use that as default
                         help="Number of parallel processes (default: all cores)")
     args = parser.parse_args()
@@ -173,7 +171,7 @@ def main():
 
     # 1. Data Ingestion (Repository Pattern)
     prot_repo = ProteinRepository(root / args.fasta, root / args.msa_dir)
-    lig_repo = LigandRepository(root / args.ligand_dir)
+    lig_repo = LigandRepository(root / args.ligand_path)
 
     proteins = prot_repo.get_all()
     ligands = lig_repo.get_all()

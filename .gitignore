@@ -30,6 +30,10 @@ gpcrs/
 ligand_folder/
 output/
 Cleaned_data/
+output_Approved/
+output_phase_1/
+output_phase_2/
+output_phase_3/
 
 #file from a3m_all
 bfd.mgnify30.metaeuk30.smag30.a3m
