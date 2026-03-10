@@ -5,8 +5,7 @@ import argparse
 from pathlib import Path
 from multiprocessing import Pool
 from dataclasses import dataclass
-from typing import List, Generator, Tuple
-from typing import Optional
+from typing import List, Generator, Tuple , Optional
 
 # --- Constants & Logging ---
 # Sharding prefix length: 2 characters (e.g., output/O0/...)
@@ -25,7 +24,7 @@ logger = logging.getLogger("BoltzPipeline")
 class Protein:
     id: str
     sequence: str
-    msa_path: Path
+    msa_path: str
 
 @dataclass(frozen=True)
 class Ligand:
@@ -73,8 +72,11 @@ class ProteinRepository:
         if not msa_path.is_file():
             # In a production pipeline, we log this but don't stop the whole process
             logger.debug(f"Skipping {p_id}: MSA missing at {msa_path}")
-            return None    
-        return Protein(p_id, seq, msa_path)
+            return None 
+        # 2. The HPC path: formatted perfectly for the YAML file
+        # This will output something like "./a3m_all/O94910.a3m"
+        hpc_relative_path = f"./{self.msa_dir.name}/{p_id}.a3m"      
+        return Protein(p_id, seq, hpc_relative_path)
 
 class LigandRepository:
     """Handles parsing Ligand CSV/TSV data."""
@@ -97,7 +99,7 @@ class LigandRepository:
             # Assuming columns: 'ligand_id' and 'smiles'
             for _, row in df.iterrows():
                 all_ligands.append(Ligand(
-                    str(row['ligand_id']).strip(),
+                    str(row['chembl_id']).strip(), #here you can change the column name to match your csv/tsv
                     str(row['smiles']).strip()
                 ))
         
@@ -160,7 +162,7 @@ def main():
     parser.add_argument("--msa_dir", default="a3m_all")
     parser.add_argument("--ligand_dir", default="ligand_folder")
     parser.add_argument("--out_dir", default="output")
-    parser.add_argument("--workers", type=int, default=os.cpu_count(), 
+    parser.add_argument("--workers", type=int, default=os.cpu_count(), #check for cpu count and use that as default
                         help="Number of parallel processes (default: all cores)")
     args = parser.parse_args()
 
