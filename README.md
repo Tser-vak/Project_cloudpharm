@@ -1,7 +1,7 @@
 # 🧬 Scalable Boltz-2 YAML Generator
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](#)
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](#)
 
 A high-performance, multiprocessing pipeline designed to generate combinatorial YAML configuration files for Boltz-2. This tool takes a list of proteins (via FASTA and associated MSA files) and a list of ligands (via CSV/TSV) and orchestrates the creation of individual task files for downstream molecular modeling.
 
