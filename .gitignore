@@ -44,3 +44,6 @@ Gemini.md
 
 #The docker file
 Dockerfile
+
+#Not needed files 
+git_commands.txt
