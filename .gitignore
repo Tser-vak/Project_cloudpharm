@@ -35,6 +35,7 @@ output_phase_2/
 output_phase_3/
 Cleaned_data/
 git_commands.txt
+requirements.txt
 
 #file from a3m_all
 bfd.mgnify30.metaeuk30.smag30.a3m
@@ -44,6 +45,10 @@ Gemini.md
 
 #The docker file
 Dockerfile
+.dockerignore
 
 #Not needed files 
 git_commands.txt
+
+#Not needed code
+smiles_cleaner.py 

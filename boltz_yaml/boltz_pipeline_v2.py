@@ -140,7 +140,7 @@ sequences:
 
   - ligand:
       id: L
-      smiles: "{ligand.smiles}"
+      smiles: '{ligand.smiles}'
 
 properties:
   - affinity:
@@ -158,9 +158,9 @@ def main():
     parser = argparse.ArgumentParser(description="Scalable Boltz-2 YAML Generator")
     parser.add_argument("--fasta", default="gpcrs/gpcrs.fasta")
     parser.add_argument("--msa_dir", default="a3m_all")
-    parser.add_argument("--ligand_path", default="ligand_folder/Cleaned_phase_2.csv")
-    parser.add_argument("--out_dir", default="output_phase_2")
-    parser.add_argument("--workers", type=int, default=max(1 , (os.cpu_count() or 1) - 2), #check for cpu count and use that as default
+    parser.add_argument("--ligand_path", default="ligand_folder/Cleaned_approved.csv")
+    parser.add_argument("--out_dir", default="output_Approved")
+    parser.add_argument("--workers", type=int, default=max(1 , (os.cpu_count() or 1) - 2), #check for cpu count and use that as default #os.environ.get('SLURM_CPUS_PER_TASK') this is you run it in a server with slurm and you set --cpus-per-task it will use that as default
                         help="Number of parallel processes (default: all cores)")
     args = parser.parse_args()
 
@@ -227,3 +227,8 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+#For server run check if Persistent Logging The Issue: Your script uses the logging module (which is great!), but it currently only outputs to the console (StreamHandler). If you disconnect from the server (via SSH), you lose the log history.,
+# The Fix: Add a FileHandler to your logging setup so it writes to a file like pipeline_run.log. This gives you an audit trail if something fails overnight.
