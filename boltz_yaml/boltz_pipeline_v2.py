@@ -12,10 +12,16 @@ from typing import List, Generator, Tuple , Optional
 # This keeps ~4000-5000 files per folder instead of 1.4 million in one.
 SHARD_PREFIX_LEN = 2
 
+# Ensure logs directory exists
+os.makedirs("logs", exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
+    handlers=[
+        logging.StreamHandler(),
+        logging.FileHandler("logs/pipeline_run.log")
+    ]
 )
 logger = logging.getLogger("BoltzPipeline")
 
@@ -158,7 +164,7 @@ def main():
     parser = argparse.ArgumentParser(description="Scalable Boltz-2 YAML Generator")
     parser.add_argument("--fasta", default="gpcrs/gpcrs.fasta")
     parser.add_argument("--msa_dir", default="a3m_all")
-    parser.add_argument("--ligand_path", default="ligand_folder/Cleaned_approved.csv")
+    parser.add_argument("--ligand_path", default="Cleaned_data/filtered_approved.csv")
     parser.add_argument("--out_dir", default="output_Approved")
     parser.add_argument("--workers", type=int, default=max(1 , (os.cpu_count() or 1) - 2), #check for cpu count and use that as default #os.environ.get('SLURM_CPUS_PER_TASK') this is you run it in a server with slurm and you set --cpus-per-task it will use that as default
                         help="Number of parallel processes (default: all cores)")
@@ -202,22 +208,27 @@ def main():
     except ImportError:
         progress = None
 
-    with Pool(processes=args.workers) as pool:
-        # imap_unordered is faster as it doesn't preserve order
-        # chunksize=100 reduces IPC overhead for small tasks
-        for result in pool.imap_unordered(process_combination, task_generator(), chunksize=100):
-            if result is True:
-                count_new += 1
-            elif result is False:
-                count_skipped += 1
-            else:
-                count_error += 1
-                logger.error(f"Task failure: {result}")
-            
-            if progress:
-                progress.update(1)
-
-    if progress: progress.close()
+    try:
+        with Pool(processes=args.workers) as pool:
+            # imap_unordered is faster as it doesn't preserve order
+            # chunksize=100 reduces IPC overhead for small tasks
+            for result in pool.imap_unordered(process_combination, task_generator(), chunksize=100):
+                if result is True:
+                    count_new += 1
+                elif result is False:
+                    count_skipped += 1
+                else:
+                    count_error += 1
+                    logger.error(f"Task failure: {result}")
+                
+                if progress:
+                    progress.update(1)
+    except KeyboardInterrupt:
+        logger.warning("\n[Interrupted] Ctrl+C detected. Shutting down workers gracefully...")
+        # The 'with' context manager will automatically call pool.terminate() and pool.join()
+    finally:
+        if progress: 
+            progress.close()
 
     logger.info("--- Pipeline Summary ---")
     logger.info(f"Created: {count_new}")
