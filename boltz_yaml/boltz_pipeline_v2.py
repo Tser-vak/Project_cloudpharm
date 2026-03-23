@@ -2,6 +2,7 @@ import os
 import re
 import logging
 import argparse
+from datetime import datetime
 from pathlib import Path
 from multiprocessing import Pool
 from dataclasses import dataclass
@@ -15,12 +16,16 @@ SHARD_PREFIX_LEN = 2
 # Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
 
+# Create a unique filename with a timestamp (e.g., pipeline_run_20240323_120000.log)
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+log_file = f"logs/pipeline_run_{timestamp}.log"
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler("logs/pipeline_run.log")
+        logging.FileHandler(log_file)
     ]
 )
 logger = logging.getLogger("BoltzPipeline")
