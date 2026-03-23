@@ -52,5 +52,4 @@ docker-compose.yaml
 #Not needed files 
 git_commands.txt
 
-#Not needed code
-smiles_cleaner.py 
+ 
