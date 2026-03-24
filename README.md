@@ -40,6 +40,23 @@ You can customize paths and hardware utilization via command-line arguments:
 | `--ligand_path` | `.../approved.csv` | Path to ligand CSV/TSV. |
 | `--out_dir` | `output_Approved` | Destination for generated YAMLs. |
 | `--workers` | `CPU_COUNT - 2` | Number of parallel processes to spawn. |
+
+## Output Example
+
+``` bash 
+name: PROTEIN_ID__LIGAND_ID
+sequences:
+  - protein:
+      id: A
+      sequence: MKWVTFISLLFLFSSAYS...
+      msa: ./a3m_all/PROTEIN_ID.a3m
+  - ligand:
+      id: L
+      smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O'
+properties:
+  - affinity:
+      binder: L
+```
  
 
 
@@ -86,22 +103,7 @@ python "smiles_cleaner.py" --input "raw_molecules.csv" --output "cleaned_molecul
 | `--split_dir` | String | No | None | Directory to save sharded phase-specific CSVs. |
 | `--cores` | Integer | No | System CPU - 2 | Forces a specific number of CPU workers. |
 
-## Output Example
 
-``` bash 
-name: PROTEIN_ID__LIGAND_ID
-sequences:
-  - protein:
-      id: A
-      sequence: MKWVTFISLLFLFSSAYS...
-      msa: ./a3m_all/PROTEIN_ID.a3m
-  - ligand:
-      id: L
-      smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O'
-properties:
-  - affinity:
-      binder: L
-```
 
 
 ## 🚀 Installation
