@@ -1,11 +1,27 @@
-# 🧬 Scalable Boltz-2 YAML Generator
+# 🧬 Scalable Boltz-2 YAML Generator And Smile Cleaner
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](#)
 
+# - Boltz-2 -Yaml
 A high-performance, multiprocessing pipeline designed to generate combinatorial YAML configuration files for Boltz-2. This tool takes a list of proteins (via FASTA and associated MSA files) and a list of ligands (via CSV/TSV) and orchestrates the creation of individual task files for downstream molecular modeling.
 
 Designed to handle massive datasets (e.g., millions of combinations), it utilizes strict design patterns to ensure low memory footprint, process safety, and easy recoverability.
+
+# - Smiles_cleaner
+This utility is designed to clean and standardize SMILES strings within chemical CSV datasets. It is optimized for large-scale data, utilizing multiprocessing to ensure it doesn't bottleneck your pipeline.
+
+** Note: **  This tool is highly specialized for personal workflows, specifically tailored for data that was carefully pre-filtered using SQLite on the ChEMBL database.
+
+## Features
+
+* **Multi-Core Processing:** Utilizes `ProcessPoolExecutor` to distribute row-level tasks across your CPU cores, drastically reducing processing time.
+* **Modular Cleaning Strategies:** Decouples cleaning rules from the execution engine. Currently includes:
+  * **Salt Remover:** Isolates the largest fragment in a SMILES string (e.g., stripping `[Na+]` from `CCO.[Na+]`).
+  * **Whitespace Cleaner:** Removes invisible trailing spaces and tabs that can break chemical fingerprinting.
+* **Deterministic Deduplication:** Tracks original indices to ensure "keep first" deduplication is strictly based on the original file order.
+* **Phase-Based Sharding:** Optionally splits the cleaned dataset into separate CSVs based on clinical phase (`max_phase`) for downstream HPC pipelines.
+* **Comprehensive Logging:** Features a silent `tqdm` console interface while maintaining deep, auditable logs for modifications, errors, and duplicates.
 
 ## ✨ Key Features
 
