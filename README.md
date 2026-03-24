@@ -16,6 +16,32 @@ Designed to handle massive datasets (e.g., millions of combinations), it utilize
 * **Resilient Architecture:** Implements the Repository and Strategy design patterns to separate data parsing from business logic. One failing combination will not crash the entire worker pool.
 * **Real-time Progress:** Built-in integration with `tqdm` to monitor the pipeline's progress in real-time.
 
+## 📂 Directory Structure
+
+  ```bash
+  Project Structure
+  .
+  ├── a3m_all/                # Source for Protein MSAs (.a3m)
+  ├── gpcrs/                  # Input Protein data
+  │   └── gpcrs.fasta         # Multi-FASTA file
+  ├── Cleaned_data/           # Input Ligand data
+  │   └── approved.csv        # CSV with 'chembl_id' and 'smiles'
+  ├── logs/                   # Auto-generated runtime logs
+  └── boltz_pipeline_v2.py    # Scalable YAML generator
+  ``` 
+
+  ### Advanced Configuration
+You can customize paths and hardware utilization via command-line arguments:
+
+| Argument | Default | Description |
+| :--- | :--- | :--- |
+| `--fasta` | `gpcrs/gpcrs.fasta` | Path to protein FASTA file. |
+| `--msa_dir` | `a3m_all` | Directory where MSA (`.a3m`) files are stored. |
+| `--ligand_path` | `.../approved.csv` | Path to ligand CSV/TSV. |
+| `--out_dir` | `output_Approved` | Destination for generated YAMLs. |
+| `--workers` | `CPU_COUNT - 2` | Number of parallel processes to spawn. |
+ 
+
 
 # - Smiles_cleaner
 This utility is designed to clean and standardize SMILES strings within chemical CSV datasets. It is optimized for large-scale data, utilizing multiprocessing to ensure it doesn't bottleneck your pipeline.
@@ -39,14 +65,14 @@ Run the script via the command line. At a minimum, you must provide an input CSV
 Standardize SMILES and remove duplicates:
 
 ```bash
-python smiles_cleaner.py --input raw_molecules.csv --output cleaned_molecules.csv
+python "smiles_cleaner.py" --input "raw_molecules.csv" --output "cleaned_molecules.csv"
 ```
 
 ### Advanced Usage
 Clean the data, force the script to use exactly 4 CPU cores, and shard the final output by clinical phase into a specific directory:
 
 ```bash
-python smiles_cleaner.py --input raw_molecules.csv --output cleaned_molecules.csv --split_dir phase_outputs/ --cores 4
+python "smiles_cleaner.py" --input "raw_molecules.csv" --output "cleaned_molecules.csv" --split_dir "phase_outputs/" --cores "4"
 ```
 ##Command Line Arguments 
 
@@ -59,6 +85,23 @@ python smiles_cleaner.py --input raw_molecules.csv --output cleaned_molecules.cs
 | `--dupe_log` | String | No | `logs/duplicates_removed.csv` | Path to save the CSV containing removed duplicate rows. |
 | `--split_dir` | String | No | None | Directory to save sharded phase-specific CSVs. |
 | `--cores` | Integer | No | System CPU - 2 | Forces a specific number of CPU workers. |
+
+## Output Example
+
+``` bash 
+name: PROTEIN_ID__LIGAND_ID
+sequences:
+  - protein:
+      id: A
+      sequence: MKWVTFISLLFLFSSAYS...
+      msa: ./a3m_all/PROTEIN_ID.a3m
+  - ligand:
+      id: L
+      smiles: 'CC(=O)OC1=CC=CC=C1C(=O)O'
+properties:
+  - affinity:
+      binder: L
+```
 
 
 ## 🚀 Installation
