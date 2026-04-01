@@ -1,0 +1,7 @@
+#Not getting not needed files to git
+data/
+dockerfile
+docker_compose.yaml
+
+#env 
+.venv/
