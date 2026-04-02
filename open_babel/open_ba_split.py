@@ -11,7 +11,11 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-# ======= WAY TO RUN THE SCRIPT |||| python3 open_ba_split.py -i data/input -o data/output -w 16 -ph 7.0  ||||==================
+# ======= WAY TO RUN THE SCRIPT |||| python3 open_ba_split.py -i data/input -o data/output -w 16 -ph 7.0 ... ||||==================
+# ====== Here we have A subprocess for linux proccess ||| Watch out the .venv is made for linux env , ubuntu  and to be able to eun the 
+# script you need either to run it in a ,inux env or use the WSL terminal in the ID of you choosing 
+# Writing to start the instance of env with source .venv/bin/activate  and then run the script with the command above ||| 
+# You can also change the default input and output directories in the configuration section of the script
 
 # =========================================================
 # CONFIGURATION SECTION (Hardcode your defaults here)
