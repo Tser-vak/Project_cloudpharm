@@ -11,7 +11,7 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-# ======= WAY TO RUN THE SCRIPT |||| python3 open_ba_split.py -i data/input -o data/output -w 16 -p 7.0  ||||==================
+# ======= WAY TO RUN THE SCRIPT |||| python3 open_ba_split.py -i data/input -o data/output -w 16 -ph 7.0  ||||==================
 
 # =========================================================
 # CONFIGURATION SECTION (Hardcode your defaults here)
@@ -24,17 +24,19 @@ LOG_BASE_DIR = "logs"
 # =========================================================
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 log_dir = Path(LOG_BASE_DIR)
-log_dir.mkdir(exist_ok=True)
+success_log_dir = log_dir / "success"
+failure_log_dir = log_dir / "failure"
 
-success_log_path = log_dir / f"run_{timestamp}_success.log"
-failure_log_path = log_dir / f"run_{timestamp}_failure.log"
-main_log_path = log_dir / f"run_{timestamp}_main.log"
+success_log_dir.mkdir(parents=True, exist_ok=True)
+failure_log_dir.mkdir(parents=True, exist_ok=True)
+
+success_log_path = success_log_dir / f"run_{timestamp}_success.log"
+failure_log_path = failure_log_dir / f"run_{timestamp}_failure.log"
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(main_log_path),
         logging.StreamHandler(sys.stdout)
     ]
 )
@@ -60,7 +62,7 @@ def log_to_file(path, message):
     with open(path, "a") as f:
         f.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
-def process_single_cif(cif_path, protein_dir, ligand_dir, success_log, failure_log, overwrite=False):
+def process_single_cif(cif_path, protein_dir, ligand_dir, success_log, failure_log, overwrite=False, ph="6.8", cofactor_logic=False, no_protein=False):
     cif_path = Path(cif_path)
     base_name = cif_path.stem
     
@@ -68,7 +70,7 @@ def process_single_cif(cif_path, protein_dir, ligand_dir, success_log, failure_l
     lig_out = ligand_dir / f"{base_name}_ligand.sdf"
     
     # Skip if outputs already exist and overwrite is False
-    if not overwrite and prot_out.exists() and lig_out.exists():
+    if not overwrite and lig_out.exists() and (no_protein or prot_out.exists()):
         return f"Skipped: {base_name} (exists)"
 
     try:
@@ -78,21 +80,37 @@ def process_single_cif(cif_path, protein_dir, ligand_dir, success_log, failure_l
         st = gemmi.make_structure_from_block(doc.sole_block())
         
         # Extract Protein
-        st_protein = st.clone()
-        st_protein.remove_ligands_and_waters()
-        st_protein.write_pdb(str(prot_out))
+        if not no_protein:
+            st_protein = st.clone()
+            st_protein.remove_ligands_and_waters()
+            st_protein.write_pdb(str(prot_out))
 
         # Extract Ligand
         st_ligand = st.clone()
         st_ligand.remove_waters()
         
+        # Determine target ligand based on directory
+        folder_name = cif_path.parent.name
+        target_res = None
+        # !!!!!!Need to change the logic to let the user specify if it has cofactors or not |Now it works hardcoded|!!!!!!!!!
+        if cofactor_logic.lower() == "y":
+            target_res = "LIG2"
+        elif cofactor_logic.lower() == "n":
+            target_res = "LIG1"
+
         for model in st_ligand:
             for chain in model:
                 for i in reversed(range(len(chain))):
                     res = chain[i]
-                    res_info = gemmi.find_tabulated_residue(res.name)
-                    if res_info.is_amino_acid() or res_info.is_nucleic_acid():
-                        del chain[i]
+                    if target_res:
+                        # Keep only the target ligand (LIG1 or LIG2)
+                        if res.name != target_res:
+                            del chain[i]
+                    else:
+                        # Fallback to original logic if folder is unknown
+                        res_info = gemmi.find_tabulated_residue(res.name)
+                        if res_info.is_amino_acid() or res_info.is_nucleic_acid():
+                            del chain[i]
 
         st_ligand.remove_empty_chains()
         
@@ -106,7 +124,7 @@ def process_single_cif(cif_path, protein_dir, ligand_dir, success_log, failure_l
         # Fix Chemistry with OpenBabel
         try:
             subprocess.run(
-                ["obabel", str(temp_lig_pdb), "-O", str(lig_out), "-p", "7.4"],
+                ["obabel", str(temp_lig_pdb), "-O", str(lig_out), "-p", ph ],
                 check=True, capture_output=True
             )
             log_to_file(success_log, f"SUCCESS: {base_name}")
@@ -129,8 +147,11 @@ def main():
     parser = argparse.ArgumentParser(description="High-performance CIF protein-ligand splitter.")
     parser.add_argument("-i", "--input", default=DEFAULT_INPUT_DIR, help=f"Input directory containing .cif files (default: {DEFAULT_INPUT_DIR})")
     parser.add_argument("-l", "--logdir", default=LOG_BASE_DIR, help=f"Directory to store logs (default: {LOG_BASE_DIR})")
-    parser.add_argument("-c" , "--cores" , type=int , default=max(1,( 0.5*(os.cpu_count()))) , help="Number of CPU cores to use (default: all available)")
+    parser.add_argument("-c" , "--cores" , type=int , default=max(1,(os.cpu_count()- 4)) , help="Number of CPU cores to use (default: all available)")
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files (default: False)")
+    parser.add_argument("-ph", default="6.8", help="pH value for OpenBabel processing (default: 6.8)")
+    parser.add_argument("-cf", default="n", choices=["y", "n"], help="Specify if the dataset contains cofactors (y/n, default: n)")
+    parser.add_argument("--no-protein", action="store_true", help="Skip protein extraction (default: False)")
     args = parser.parse_args()
 
     input_dir = Path(args.input)
@@ -141,7 +162,8 @@ def main():
     protein_dir = base_output_dir / "proteins"
     ligand_dir = base_output_dir / "ligands"
     
-    protein_dir.mkdir(parents=True, exist_ok=True)
+    if not args.no_protein:
+        protein_dir.mkdir(parents=True, exist_ok=True)
     ligand_dir.mkdir(parents=True, exist_ok=True)
 
     cif_files = list(input_dir.glob("*.cif"))
@@ -151,13 +173,14 @@ def main():
         return
 
     logging.info(f"Input: {input_dir}")
-    logging.info(f"Protein Output: {protein_dir}")
+    if not args.no_protein:
+        logging.info(f"Protein Output: {protein_dir}")
     logging.info(f"Ligand Output: {ligand_dir}")
     logging.info(f"Processing {len(cif_files)} files using {args.cores} cores...")
 
     executor = ProcessPoolExecutor(max_workers=args.cores)
     futures = {
-        executor.submit(process_single_cif, f, protein_dir, ligand_dir, success_log_path, failure_log_path, args.overwrite): f.name
+        executor.submit(process_single_cif, f, protein_dir, ligand_dir, success_log_path, failure_log_path, args.overwrite, args.ph, args.cf, args.no_protein): f.name
         for f in cif_files
     }
     
