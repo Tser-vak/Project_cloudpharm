@@ -1,0 +1,8 @@
+#Ignore logs
+logs/
+
+#Ignore data
+Data/
+
+#Ignore venv
+venv/
