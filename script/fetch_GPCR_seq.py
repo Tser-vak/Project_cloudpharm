@@ -197,7 +197,7 @@ def fetch_prot(query, output_path, progress_ui):
     url = "https://rest.uniprot.org/uniprotkb/stream"
     params = {
         "query": query,
-        "fields": "accession,protein_name,gene_names,sequence",
+        "fields": "accession,protein_name,organism_name,gene_names,sequence",
         "format": "tsv"
     }
     
