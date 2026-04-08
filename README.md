@@ -35,3 +35,34 @@ Before running the script, ensure you have the following installed in your Linux
    git clone [https://github.com/Tser-vak/openbable.git](https://github.com/Tser-vak/openbable.git)
    cd ..
    pip install requirements.txt
+
+## Usage 
+
+**Ensure your virtual environment** is active (source .venv/bin/activate) before running the script.
+**Basic Command**
+If your .cif files are in data/no_2og (the default input), you can simply run:
+
+```bash
+python3 open_ba_split.py
+```
+**Advanced Command Example**
+You can customize the input, output, CPU usage, and target pH:
+
+```bash
+python3 open_ba_split.py -i data/input_cifs -o data/output_folder -c 16 -ph 7.0 -cf y
+```
+
+| Argument | Short | Description | Default |
+| :--- | :--- | :--- | :--- |
+| `--input` | `-i` | Input directory containing `.cif` files. | `data/no_2og` |
+| `--output` | `-o` | Base output directory (derived from input if not set). | *Auto-derived* |
+| `--prot-dir` | `-op` | Specific output directory for protein files. | `[output]/proteins` |
+| `--lig-dir` | `-ol` | Specific output directory for ligand files. | `[output]/ligands` |
+| `--logdir` | `-l` | Directory to store success and failure logs. | `logs` |
+| `--cores` | `-c` | Number of CPU cores to use. | *Total Cores - 4* |
+| `--overwrite` | | Flag to overwrite existing output files. | `False` |
+| `-ph` | | pH value for OpenBabel processing. | `6.8` |
+| `-cf` | | Specify if the dataset contains cofactors (`y` or `n`). | `n` |
+| `--no-protein`| | Flag to skip protein extraction entirely. | `False` |
+
+
