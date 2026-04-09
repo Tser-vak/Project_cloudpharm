@@ -248,7 +248,7 @@ def fetch_prot(query, output_path, progress_ui):
         session.close()
 
 def main():
-    app = QueryDialog("UniProt Data Fetcher (Gemini 3 Enhanced)", DEFAULT_QUERY)
+    app = QueryDialog("UniProt Data Fetcher", DEFAULT_QUERY)
     
     while True:
         app.deiconify()
@@ -258,10 +258,32 @@ def main():
         if not query:
             break
 
-        default_dir = os.path.join(PROJECT_ROOT, "data", "GPCR_Seq")
-        if not os.path.exists(default_dir):
-            os.makedirs(default_dir)
-            
+        # Case-insensitive search for a 'data' folder in the project root
+        default_dir = None
+        try:
+            for entry in os.listdir(PROJECT_ROOT):
+                if entry.lower() == "data" and os.path.isdir(os.path.join(PROJECT_ROOT, entry)):
+                    default_dir = os.path.join(PROJECT_ROOT, entry)
+                    break
+        except OSError:
+            pass
+
+        if default_dir is None:
+            # No data folder found — ask the user to pick a save location
+            messagebox.showinfo(
+                "No Data Folder Found",
+                "No 'data' folder was found in the project directory.\n"
+                "Please choose a folder where you want to save the results."
+            )
+            default_dir = filedialog.askdirectory(
+                parent=app,
+                title="Select Save Location",
+                initialdir=PROJECT_ROOT
+            )
+            if not default_dir:
+                app.result = None
+                continue
+
         output_path = filedialog.asksaveasfilename(
             parent=app,
             title="Save Sequence Results",
