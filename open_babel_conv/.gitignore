@@ -1,0 +1,10 @@
+#Not getting not needed files to git
+data/
+dockerfile
+docker_compose.yaml
+logs/
+ligands/
+proteins/
+
+#env 
+.venv/
