@@ -1,1 +1,1 @@
-## This the whole package of the tools i created for the usage in my work as an inter in Cloudpharm - in the Cloudscreen Project
+##Here is the complete package of tools I created during my internship at Cloudpharm. It helps with Boltz-2 YAML creation, fetching UniProt data, ChEMBL bulk screening, and converting .cif files to PDB and SDF formats. I hope it helps other scientists on their journey!
