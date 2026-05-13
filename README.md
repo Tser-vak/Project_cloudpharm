@@ -1,2 +1,1 @@
 **Here is the complete package of tools I created during my internship at Cloudpharm. It helps with Boltz-2 YAML creation, fetching UniProt data, ChEMBL bulk screening, and converting .cif files to PDB and SDF formats. I hope it helps other scientists on their journey!**
-### [![Chem_ML_Pipeline](https://opengraph.githubassets.com/1/Tser-vak/Project_cloudpharm)](https://github.com/Tser-vak/Project_cloudpharm)!
